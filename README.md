@@ -299,66 +299,7 @@ These apps allow you to use specify relevant data sources and then use the Grafa
 
 **Note:** Both Explore Traces and Explore Profiles are currently in public preview and may change before finally being made generally available.
 
-## Grafana Cloud
 
->**Note**: By default, as mentioned in the Grafana Alloy section, metrics, logs, traces and profiles are scraped by default from every service. If sending metrics to Grafana Cloud, check the number of signals (for example, for metrics, the number of [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/)) that you can store without additional cost.
-
-In the following configuration instructions, you can generate a general purpose `write`` scope token that will work with metrics, logs and traces, but note that the profiling token is separate and needs to be generated specifically for Pyroscope.
-
-This demo can be run against Grafana Cloud by configuring the `alloy/endpoints-cloud.json` file for each signal. This differs slightly for each of the signals.
-
-1. Metrics - Navigate to the `Prometheus` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `Sending metrics` section. Use the `url` denoted to replace the `<metricsUrl>` value in the JSON file. If you do not already have a scope token to write metrics, you can generate one under the `Password / API Token` section. *Ensure that the token is a `write` scope token.* Replace the `<metricsUsername>` and `<metricsPassword>` entries with the username and token denoted in the Cloud Stack page.
-2. Logs - Navigate to the `Loki` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `Sending Logs` section. Use the `url` denoted to replace the `<logsUrl>` value in the JSON file, but do not include the username and token in the url. It should look something like this: `https://logs-prod3.grafana.net/loki/api/v1/push`. If you do not already have a scope token to write metrics, you can generate one under the `Replace <Grafana.com API Token>` section. *Ensure that the token is a `write` scope token.* Replace the `<logsUsername>` and `<logsPassword>` entries with the username and token denoted in the Cloud Stack page.
-3. Traces - Navigate to the `Tempo` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `Sending data to Tempo` section. Use the `url` denoted to replace the `<tracesUrl>` value in the JSON file. If you do not already have a scope token to write metrics, you can generate one under the `Your <Grafana.com API Token>` section. *Ensure that the token is a `write` scope token.* Take a note of the username and token, and then run the following command in your local shell:
-   ```bash
-   echo '<username>:<token>' | base64
-   ```
-   where `<username>` is the Tempo username and `<token>` is the token you generated with the `write` scope. Copy the output from running the command and use it to replace the value of `<tracesBase64AuthToken>` in the JSON file.
-4. Profiles -  Navigate to the `Pyroscope` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `SDK or agent configuration` section. Use the `url` denoted to replace the `<profilesUrl>` value in the JSON file. You will need to generate a `write` scope token for Pyroscope specifically, do this by selecting the `Generate now` link in the `Password` block of the `SDK or agent configuration` section. *Ensure that the token is a `write` scope token.* Replace the `<profileUsername>` and `<profilePassword>` entries with the username and token denoted in the Cloud Stack page.
-5. Run `docker compose -f docker-compose-cloud.yml up`
-
-The Grafana Alloy will send all the signals to the Grafana Cloud stack specified in the `alloy/endpoints-cloud.json` file.
-
-## Using the OpenTelemetry Collector
-
-You can also use an alternative environment that uses the OpenTelemetry Collector in place of Grafana Alloy.
-Note that this only works for the local version of the repository, and *not* Grafana Cloud.
-
-### Running the Demonstration Environment with OpenTelemetry Collector
-
-Docker Compose downloads the required Docker images, before starting the demonstration environment.
-
-In the following examples, the in-built `compose` command is used with a latest version of Docker (for example, `docker compose up`). If using an older version of Docker with a separate Docker Compose binary, ensure that `docker compose` is replaced with `docker-compose`.
-
-Data is emitted from the microservice application and stored in Loki, Tempo, and Prometheus. You can login to the Grafana service to visualize this data.
-
-*Note:* The OpenTelemetry Collector does not currently include an exporter for Pyroscope, and therefore the Docker Compose manifest for the OpenTelemetry Collector does not support the export of profiles.
-
-To execute the environment and login:
-
-1. Start a new command-line interface in your Operating System and run:
-   ```bash
-   docker compose -f docker-compose-otel.yml up
-   ```
-2. Login to the local Grafana service at http://localhost:3000/.
-
-   *NOTE:* This assumes that port 3000 is not already in use. If this port is not free, edit the `docker-compose.yml` file and alter the line
-   ```
-   - "3000:3000"
-   ```
-   to some other host port that is free, for example:
-   ```
-   - "3123:3000"
-   ```
-3. Explore the data sources using the [Grafana Explorer](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22Mimir%22,%22queries%22:%5B%7B%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
-
-The OpenTelemetry Collector is defined as the `opentelemetry-collector` service in the [`docker-compose-otel.yml`](docker-compose-otel.yml) manifest.
-
-A basic configuration that mimics that of the Grafana Alloy configuration can be found in the [`otel/otel.yml`](otel/otel.yml) configuration file.
-
-In much the same way that the Grafana Alloy configuration operates, this scrapes several targets to retrieve Prometheus metrics before batching them and remote writing them to the local Mimir service.
-
-Additionally, the OpenTelemetry Collector receives traces via OTLP gRPC, batches them, and then remote writes them to the local Tempo instance.
 
 ## Span and service graph metrics generation
 Span metrics and service metrics are also available, but have not been attached to the trace receiver defined in the Alloy configuration file as generation is handled in Tempo by default. You may switch to Alloy-based metrics generation by following the directions in the [`alloy/config.alloy`](alloy/config.alloy) file in the the `otlp_receiver` tracing configuration section. There are comments showing you which lines to uncomment to add both metrics generator collectors to add to the graph. You will also need to comment out the metrics generation in [`tempo/tempo.yaml`](tempo/tempo.yaml) to generate metrics from the Alloy rather than in Tempo (the same holds true for the OpenTelemetry metrics generation configuration sections). You can do the equivalent metrics generation in the OpenTelemetry Collector by following the relevant instructions on uncommenting/commenting `processors`, `exporters` and `receivers` sections in [`otel/otel.yaml`](otel/otel.yaml).
