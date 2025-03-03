@@ -45,7 +45,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.6.0
+    image: grafana/tempo:2.7.1
     ports:
       - "3200:3200"
       - "9411:9411"
@@ -59,7 +59,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.2.0
+    image: grafana/loki:3.4.0
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -67,7 +67,7 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.13.0
+    image: grafana/mimir:2.15.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
