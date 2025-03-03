@@ -9,7 +9,7 @@ services:
   alloy:
     image: grafana/alloy:v1.7.1
     ports:
-      - "12345:12345"
+      - "12347:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
@@ -40,12 +40,12 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
 
-  # A RabbitMQ queue used to send message between the requester and the server microservices.
+
 
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.7.1
+    image: grafana/tempo:2.6.0
     ports:
       - "3200:3200"
       - "9411:9411"
@@ -55,7 +55,6 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - "./tempo/tempo.yaml:/etc/tempo.yaml"
-    network_mode: host
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -68,7 +67,7 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.15.0
+    image: grafana/mimir:2.13.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
