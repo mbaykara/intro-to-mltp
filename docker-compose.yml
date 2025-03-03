@@ -7,9 +7,9 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:latest
+    image: grafana/alloy:v1.7.1
     ports:
-      - "12347:12345"
+      - "12345:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
@@ -55,6 +55,7 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - "./tempo/tempo.yaml:/etc/tempo.yaml"
+    network_mode: host
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -73,3 +74,5 @@ services:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
+
+
