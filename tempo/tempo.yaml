@@ -20,9 +20,10 @@ distributor:
         thrift_compact:
     otlp:
       protocols:
+        grpc:
+          endpoint: "tempo:4317"
         http:
-        grpc:            # This example repository only utilises the OTLP gRPC receiver on port 4317.
-    zipkin:              # Receive trace data in any supported Zipkin format.
+          endpoint: "tempo:4318"
 
 # The ingester receives data from the distributor and processes it into indices and blocks.
 ingester:
@@ -83,9 +84,6 @@ metrics_generator:
   registry:
     collection_interval: 5s                 # Create new metrics every 5s.
     # Configure extra labels to be added to metrics.
-    external_labels:
-      source: tempo                         # Add a `{source="tempo"}` label.
-      group: 'mythical'                     # Add a `{group="mythical"}` label.
   # Configures where the store for metrics is located.
   storage:
     # WAL for metrics generation.
